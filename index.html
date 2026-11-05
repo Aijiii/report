@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barangay Complaint &amp; Report System</title>
+  <meta name="description" content="Submit complaints and community concerns to your barangay and track their status." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="hotline">
+    <div class="container">
+      <span id="hotline-text">In an emergency, do not wait for a report.</span>
+      <span>Call <a id="hotline-link" href="tel:911">911</a></span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#resident">
+        <span class="brand-mark" aria-hidden="true">B</span>
+        <span class="brand-text">
+          <strong>Barangay Complaint &amp; Report System</strong>
+          <small id="brand-sub">Resident Portal</small>
+        </span>
+      </a>
+      <div class="header-right">
+        <nav class="header-nav" aria-label="Main">
+          <a href="#resident" id="nav-resident" class="active">Resident</a>
+          <a href="#admin" id="nav-admin">Admin Login</a>
+        </nav>
+        <button type="button" id="theme-btn" class="theme-btn" aria-label="Switch dark or light mode" title="Dark / light mode">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="banner" hidden>
+    <div class="container">
+      <strong>Demo mode:</strong> reports are saved only in this browser. To share reports between devices, connect Firebase (see the settings at the top of the script).
+    </div>
+  </div>
+
+  <!-- ===================== RESIDENT ===================== -->
+  <div id="area-resident">
+    <main class="container page">
+      <section class="hero">
+        <div>
+          <h1>Report a concern to your barangay</h1>
+          <p>Tell us about a problem in your community. You will get a reference number so you can follow the progress of your report.</p>
+        </div>
+        <ol class="hero-steps">
+          <li><b>1</b> Fill in the report form</li>
+          <li><b>2</b> Save your reference number</li>
+          <li><b>3</b> Follow updates from officials</li>
+        </ol>
+      </section>
+
+      <div class="tabs" role="tablist" aria-label="Resident sections">
+        <button id="tab-submit" class="tab active" role="tab" aria-selected="true" aria-controls="panel-submit">Report a Concern</button>
+        <button id="tab-reports" class="tab" role="tab" aria-selected="false" aria-controls="panel-reports">
+          My Reports <span id="my-count" class="pill">0</span>
+        </button>
+      </div>
+
+      <section id="panel-submit" class="card" role="tabpanel">
+        <div id="form-wrap">
+          <h2>Submit a complaint or concern</h2>
+          <form id="report-form" novalidate>
+            <div class="grid-2">
+              <div class="field">
+                <label for="fullName">Full Name <span class="req">*</span></label>
+                <input type="text" id="fullName" maxlength="100" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="contact">Contact Information <span class="opt">(optional)</span></label>
+                <input type="text" id="contact" maxlength="100" placeholder="Mobile number or email" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="type">Type of Concern <span class="req">*</span></label>
+                <select id="type" required>
+                  <option value="">Select type of concern</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="location">Location <span class="req">*</span></label>
+                <input type="text" id="location" maxlength="150" placeholder="Street, purok, or landmark" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="label">How urgent is it?</span>
+              <div class="priority-choice">
+                <div>
+                  <input type="radio" name="priority" id="prio-normal" value="Normal" checked />
+                  <label for="prio-normal">Normal <small>Can be handled in the usual order</small></label>
+                </div>
+                <div>
+                  <input type="radio" name="priority" id="prio-urgent" value="Urgent" />
+                  <label for="prio-urgent">Urgent <small>Danger to people or property</small></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="description">Description of the Problem <span class="req">*</span></label>
+              <textarea id="description" rows="6" maxlength="2000" placeholder="Describe what happened, when it happened, and who is affected." required></textarea>
+              <div class="counter"><span id="desc-count">0</span> / 2000</div>
+            </div>
+
+            <div class="hp" aria-hidden="true">
+              <label for="website">Website</label>
+              <input type="text" id="website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <p id="form-error" class="form-error" role="alert" hidden></p>
+
+            <div class="form-actions">
+              <button type="submit" id="submit-btn" class="btn primary">Submit Report</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="confirmation" class="confirmation" hidden>
+          <div class="check" aria-hidden="true">✓</div>
+          <h2>Your report was submitted</h2>
+          <p>Thank you. The barangay officials will review your report. Keep your reference number to check the status anytime.</p>
+          <div class="ref-box">
+            <span class="ref-label">Reference number</span>
+            <code id="conf-ref">—</code>
+            <button type="button" id="copy-ref-btn" class="btn small">Copy</button>
+          </div>
+          <div class="form-actions center">
+            <button type="button" id="view-reports-btn" class="btn primary">View My Reports</button>
+            <button type="button" id="new-report-btn" class="btn">Submit Another Report</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-reports" role="tabpanel" hidden>
+        <div class="card track-card">
+          <h2>Track a report</h2>
+          <p class="muted">Reports you submit from this device appear below automatically. To follow a report from another device, enter its reference number.</p>
+          <form id="track-form" class="track-form" novalidate>
+            <input type="text" id="track-ref" placeholder="Reference number" maxlength="40" aria-label="Reference number" />
+            <button type="submit" class="btn primary">Find Report</button>
+          </form>
+          <p id="track-error" class="form-error" role="alert" hidden></p>
+        </div>
+
+        <div id="reports-list" class="reports-list"></div>
+        <p id="reports-empty" class="empty">You have no reports yet. Submit a concern to see it here.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ======================= ADMIN ======================= -->
+  <div id="area-admin" hidden>
+    <main class="container page">
+      <section id="login-view" class="card login-card">
+        <h1>Admin login</h1>
+        <p class="muted">For authorized barangay officials only.</p>
+        <p id="demo-hint" class="demo-hint" hidden>
+          Demo login: <code id="demo-hint-email"></code> / <code id="demo-hint-pass"></code>
+        </p>
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" autocomplete="current-password" required />
+          </div>
+          <p id="login-error" class="form-error" role="alert" hidden></p>
+          <div class="form-actions">
+            <button type="submit" id="login-btn" class="btn primary block">Log in</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="dashboard-view" hidden>
+        <div class="dash-head">
+          <div>
+            <h1>Reports dashboard</h1>
+            <p class="muted">Signed in as <strong id="admin-email">—</strong></p>
+          </div>
+          <button type="button" id="logout-btn" class="btn">Log out</button>
+        </div>
+
+        <div id="urgent-card" class="urgent-card calm">
+          <div>
+            <div class="label">Urgent and still open</div>
+            <div class="big" id="urgent-num">0</div>
+          </div>
+          <button type="button" id="urgent-btn" class="btn">Show urgent reports</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat total"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Total Reports</span></div>
+          <div class="stat s-submitted"><span class="stat-num" id="stat-submitted">0</span><span class="stat-label">Submitted</span></div>
+          <div class="stat s-review"><span class="stat-num" id="stat-review">0</span><span class="stat-label">Pending (Under Review)</span></div>
+          <div class="stat s-progress"><span class="stat-num" id="stat-progress">0</span><span class="stat-label">Ongoing (In Progress)</span></div>
+          <div class="stat s-resolved"><span class="stat-num" id="stat-resolved">0</span><span class="stat-label">Resolved</span></div>
+        </div>
+
+        <div class="panels">
+          <div class="card flat">
+            <div class="card-head">
+              <h2>Recent reports</h2>
+              <span class="sub">The 5 newest</span>
+            </div>
+            <ul id="recent-list" class="recent-list"></ul>
+            <p id="recent-empty" class="empty" hidden>No reports yet.</p>
+          </div>
+
+          <div class="panel-stack">
+            <div class="card flat">
+              <div class="card-head">
+                <h2>Hotspot locations</h2>
+                <span class="sub">Last 30 days</span>
+              </div>
+              <div id="hotspots" class="bars"></div>
+              <p id="hotspots-empty" class="empty" hidden>Not enough data yet.</p>
+            </div>
+            <div class="card flat">
+              <div class="card-head">
+                <h2>Concerns by type</h2>
+                <span class="sub">All reports</span>
+              </div>
+              <div id="by-type" class="bars"></div>
+              <p id="by-type-empty" class="empty" hidden>Not enough data yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>All reports <span class="muted" id="result-count"></span></h2>
+            <button type="button" id="export-btn" class="btn small">Export CSV</button>
+          </div>
+          <div class="toolbar">
+            <input type="search" id="search-input" placeholder="Search name, location, type, description..." aria-label="Search reports" />
+            <select id="filter-status" aria-label="Filter by status">
+              <option value="">All statuses</option>
+            </select>
+            <select id="filter-priority" aria-label="Filter by priority">
+              <option value="">All priorities</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Normal">Normal</option>
+            </select>
+            <select id="filter-type" aria-label="Filter by type">
+              <option value="">All types</option>
+            </select>
+            <select id="sort-by" aria-label="Sort reports">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="urgent">Urgent first</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table class="reports">
+              <thead>
+                <tr>
+                  <th>Date Submitted</th>
+                  <th>Resident</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Description</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th><span class="sr-only">Action</span></th>
+                </tr>
+              </thead>
+              <tbody id="reports-body"></tbody>
+            </table>
+          </div>
+          <p id="empty-state" class="empty" hidden>No reports found.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="review-dialog" class="dialog" aria-labelledby="dlg-title">
+    <div class="dialog-head">
+      <h2 id="dlg-title">Review report</h2>
+      <button type="button" id="dlg-close" class="icon-btn" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body">
+      <div id="dlg-details" class="details"></div>
+
+      <h3>Updates and remarks</h3>
+      <div id="dlg-history" class="history"></div>
+
+      <form id="review-form" novalidate>
+        <div class="field">
+          <label for="dlg-status">Status</label>
+          <select id="dlg-status"></select>
+        </div>
+        <div class="field">
+          <label for="dlg-remark">Add remark or update <span class="opt">(visible to the resident)</span></label>
+          <textarea id="dlg-remark" rows="3" maxlength="1000" placeholder="Example: A barangay tanod has been assigned to inspect the area."></textarea>
+        </div>
+        <p id="dlg-error" class="form-error" role="alert" hidden></p>
+        <div class="form-actions end">
+          <button type="button" id="dlg-cancel" class="btn">Cancel</button>
+          <button type="submit" id="dlg-save" class="btn primary">Save Update</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="container">Barangay Complaint &amp; Report System</div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/resident.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/router.js"></script>
+</body>
+</html>
